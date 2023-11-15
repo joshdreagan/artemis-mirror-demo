@@ -69,10 +69,10 @@ oc apply -n dc1 -f ./dc1/artemis-security.yaml
 #
 # Modify the broker cluster CR with your environment specific details and apply. Make sure to use the `${STATEFUL_SET_ORDINAL}` placeholder in your host string so that the federation applies properly (ie, ordinal-0 -> ordinal-0, ordinal-1 -> ordinal-1, ... etc). You can retrieve the generated admin password for the DC2 cluster via the web console, or via the following command `oc get secret -n dc2 security-properties-broker-prop-module -o=jsonpath='{.data.admin}' | base64 -d`. However, you must have applied the `artemis-security.yaml` in DC2 for this secret to have been generated. So you might have to hop back and forth between DC's just a bit.
 env \
-DC2_HOST='artemis-broker-core-${STATEFUL_SET_ORDINAL}-svc-dc2' \
-DC2_PORT=61616 \
+DC2_HOST='artemis-broker-amqp-${STATEFUL_SET_ORDINAL}-svc-dc2' \
+DC2_PORT=5672 \
 DC2_USER=admin \
-DC2_PASS='4CrF5Ulk' \
+DC2_PASS='VdGlA4Pa' \
 bash -c 'cat ./dc1/artemis-broker.yaml | envsubst | oc apply -n dc1 -f-'
 
 #
@@ -98,10 +98,10 @@ oc apply -n dc2 -f ./dc2/artemis-security.yaml
 #
 # Modify the broker cluster CR with your environment specific details and apply. Make sure to use the `${STATEFUL_SET_ORDINAL}` placeholder in your host string so that the federation applies properly (ie, ordinal-0 -> ordinal-0, ordinal-1 -> ordinal-1, ... etc). You can retrieve the generated admin password for the DC1 cluster via the web console, or via the following command `oc get secret -n dc1 security-properties-broker-prop-module -o=jsonpath='{.data.admin}' | base64 -d`. However, you must have applied the `artemis-security.yaml` in DC1 for this secret to have been generated. So you might have to hop back and forth between DC's just a bit.
 env \
-DC1_HOST='artemis-broker-core-${STATEFUL_SET_ORDINAL}-svc-dc1' \
-DC1_PORT=61616 \
+DC1_HOST='artemis-broker-amqp-${STATEFUL_SET_ORDINAL}-svc-dc1' \
+DC1_PORT=5672 \
 DC1_USER=admin \
-DC1_PASS='lIZmbMVg' \
+DC1_PASS='aJZVAUDE' \
 bash -c 'cat ./dc2/artemis-broker.yaml | envsubst | oc apply -n dc2 -f-'
 
 #
@@ -112,8 +112,8 @@ oc apply -n dc2 -f ./dc2/artemis-addresses.yaml
 # Expose the services to the Skupper network.
 for i in {0..1};
 do
-  oc -n dc1 annotate service artemis-broker-core-$i-svc "skupper.io/address=artemis-broker-core-$i-svc-dc1" "skupper.io/port=61616" "skupper.io/proxy=tcp"
-  oc -n dc1 annotate service artemis-broker-amqp-$i-svc "skupper.io/address=artemis-broker-amqp-$i-svc-dc1" "skupper.io/port=5672" "skupper.io/proxy=tcp"
+  oc -n dc2 annotate service artemis-broker-core-$i-svc "skupper.io/address=artemis-broker-core-$i-svc-dc2" "skupper.io/port=61616" "skupper.io/proxy=tcp"
+  oc -n dc2 annotate service artemis-broker-amqp-$i-svc "skupper.io/address=artemis-broker-amqp-$i-svc-dc2" "skupper.io/port=5672" "skupper.io/proxy=tcp"
 done;
 ```
 
